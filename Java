@@ -1,0 +1,106 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class ComplexCalculator {
+
+    public static class ComplexNumber {
+        private final double real;
+        private final double imaginary;
+
+        public ComplexNumber(double real, double imaginary) {
+            this.real = real;
+            this.imaginary = imaginary;
+        }
+
+        public double getReal() {
+            return real;
+        }
+
+        public double getImaginary() {
+            return imaginary;
+        }
+
+        public static ComplexNumber add(ComplexNumber a, ComplexNumber b) {
+            return new ComplexNumber(a.real + b.real, a.imaginary + b.imaginary);
+        }
+
+        public static ComplexNumber multiply(ComplexNumber a, ComplexNumber b) {
+            return new ComplexNumber(a.real * b.real - a.imaginary * b.imaginary,
+                                     a.real * b.imaginary + a.imaginary * b.real);
+        }
+
+        public static ComplexNumber divide(ComplexNumber a, ComplexNumber b) {
+            double denom = b.real * b.real + b.imaginary * b.imaginary;
+            return new ComplexNumber((a.real * b.real + a.imaginary * b.imaginary) / denom,
+                                     (a.imaginary * b.real - a.real * b.imaginary) / denom);
+        }
+
+        public String toString() {
+            return String.format("%.2f + %.2fi", real, imaginary);
+        }
+    }
+
+    public interface ILogger {
+        void log(String message);
+    }
+
+    public static class FileLogger implements ILogger {
+        private final String filePath;
+
+        public FileLogger(String filePath) {
+            this.filePath = filePath;
+        }
+
+        public void log(String message) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath, true))) {
+                writer.write(message);
+                writer.newLine();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static class Calculator {
+        private final ILogger logger;
+
+        public Calculator(ILogger logger) {
+            this.logger = logger;
+        }
+
+        public ComplexNumber add(ComplexNumber a, ComplexNumber b) {
+            ComplexNumber result = ComplexNumber.add(a, b);
+            logger.log("Adding: " + a + " + " + b + " = " + result);
+            return result;
+        }
+
+        public ComplexNumber multiply(ComplexNumber a, ComplexNumber b) {
+            ComplexNumber result = ComplexNumber.multiply(a, b);
+            logger.log("Multiplying: " + a + " * " + b + " = " + result);
+            return result;
+        }
+
+        public ComplexNumber divide(ComplexNumber a, ComplexNumber b) {
+            ComplexNumber result = ComplexNumber.divide(a, b);
+            logger.log("Dividing: " + a + " / " + b + " = " + result);
+            return result;
+        }
+    }
+
+    public static void main(String[] args) {
+        ILogger logger = new FileLogger("log.txt");
+        Calculator calculator = new Calculator(logger);
+
+        ComplexNumber a = new ComplexNumber(2, 3);
+        ComplexNumber b = new ComplexNumber(4, 5);
+
+        ComplexNumber sum = calculator.add(a, b);
+        ComplexNumber product = calculator.multiply(a, b);
+        ComplexNumber quotient = calculator.divide(a, b);
+
+        System.out.println("Sum: " + sum);
+        System.out.println("Product: " + product);
+        System.out.println("Quotient: " + quotient);
+    }
+}
